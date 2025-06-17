@@ -15,6 +15,7 @@ class User(db.Model,UserMixin):
     location = db.Column(db.String(100))
 
     requirements = db.relationship('Requirements',backref = 'poster',lazy=True)
+    bids = db.relationship('Bid',backref='bidder',lazy=True)
 
 
 class Requirements(db.Model):
@@ -25,3 +26,12 @@ class Requirements(db.Model):
     location = db.Column(db.String(100))
 
     user_id = db.Culumn(db.Integer,db.ForeignKey('user.id'),nullable = False)
+
+    bids = db.relationship('Bid',backref = 'requirement',lazy=True)
+
+class Bid(db.Model):
+    id = db.Column(db.Integer,primary_key=True)
+    price = db.Column(db.Float,nullable=False)
+    coment = db.Column(db.Text)
+    requirement_id = db.Column(db.Integer,db.ForeignKey('requirements.id'),nullable=False)
+    user_id = db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)

@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField,PasswordField,SubmitField,SelectField
+from wtforms import StringField,PasswordField,SubmitField,SelectField,FloatField,TextAreaField
 from wtforms.validators import DataRequired,Email,EqualTo
 
 
@@ -17,3 +17,16 @@ class LoginForm(FlaskForm):
     email = StringField('Enter your email',validators=[DataRequired(),Email()])
     password = PasswordField('Enter Password',validators=[DataRequired()])
     submit = SubmitField('Login')
+
+class RequirementForm(FlaskForm):
+    title = StringField('Title',validators=[DataRequired()])
+    description = TextAreaField("description",validators=[DataRequired()])
+    skill_nedded = StringField('Skill Needed',validators=(DataRequired()))
+    location = StringField('Location',validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+class BidForm(FlaskForm):
+    price  = FloatField('Price',validators=[DataRequired()])
+    comment = TextAreaField('Coment')
+    submit = SubmitField('Submit')
+    
