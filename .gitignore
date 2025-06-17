@@ -1,0 +1,9 @@
+# Ignore virtual environment
+skillenv/
+
+# Bytecode cache
+__pycache__/
+*.py[cod]
+
+# Secret config
+.env
