@@ -21,7 +21,7 @@ class LoginForm(FlaskForm):
 class RequirementForm(FlaskForm):
     title = StringField('Title',validators=[DataRequired()])
     description = TextAreaField("description",validators=[DataRequired()])
-    skill_nedded = StringField('Skill Needed',validators=(DataRequired()))
+    skill_nedded = StringField('Skill Needed',validators=[DataRequired()])
     location = StringField('Location',validators=[DataRequired()])
     submit = SubmitField('Submit')
 

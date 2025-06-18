@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Bids for: {{ req.title }}</h2>
+<ul>
+  {% for bid in bids %}
+    <li>{{ bid.bidder.username }} - ${{ bid.price }} - {{ bid.comment }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}

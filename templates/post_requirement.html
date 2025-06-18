@@ -1,0 +1,12 @@
+{%extends 'base.html%}
+{%block content%}
+<h2>Post requirement</h2>
+<form method="POST">
+    {{form.hidden_tag()}}
+    {{form.title.label}}{{form.title()}}
+    {{form.description.label}}{{form.description()}}
+    {{ form.skill_needed.label }} {{ form.skill_needed() }} <br>
+    {{ form.location.label }} {{ form.location() }} <br>
+    {{ form.submit() }}
+</form>
+{%endblock%}

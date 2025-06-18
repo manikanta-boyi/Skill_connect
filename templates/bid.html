@@ -1,0 +1,10 @@
+{%extends 'base.html'%}
+{%block content%}
+<h2>Bid for : {{req.title}}</h2>
+<form method="POST">
+    {{form.hidden_tag()}}
+    {{form.price.label}}{{form.price()}}
+    {{ form.comment.label }} {{ form.comment() }} <br>
+    {{ form.submit() }}
+</form>
+{%endblock%}

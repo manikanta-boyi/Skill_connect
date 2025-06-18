@@ -1,0 +1,16 @@
+{%extends 'base.html'%}
+{%block content%}
+<h2>Requirements</h2>
+<ul>
+    {%for req in reqs%}
+    <li>
+        <strong>{{req.title}}</strong>-{{req.skill_needed}}-{{req.location}}
+        {% if current_user.role == 'skilled' %}
+        <a href="{{ url_for('main.bid', req_id=req.id) }}">Bid</a>
+        {%else%}
+        <a href="{{ url_for('main.view_bids', req_id=req.id) }}">View Bids</a>
+        {%endif%}
+    </li>
+    {%endfor%}
+</ul>
+{%endblock%}
