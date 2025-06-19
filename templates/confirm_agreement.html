@@ -7,7 +7,6 @@
 <p>Skill Needed: {{ req.skill_needed }}</p>
 {% if req.voice_file_path %}
     <h4>Requirement Voice:</h4>
-    {# REMOVED: .split('static/', 1)[1] #}
     <audio controls src="{{ url_for('static', filename=req.voice_file_path) }}" type="audio/webm"></audio>
     <p>Transcription: {{ req.voice_transcription }}</p>
 {% else %}
@@ -21,7 +20,6 @@
 <p>Comment: {{ bid.comment }}</p>
 {% if bid.voice_file_path %}
     <h4>Bidder's Voice Reply:</h4>
-    {# REMOVED: .split('static/', 1)[1] #}
     <audio controls src="{{ url_for('static', filename=bid.voice_file_path) }}" type="audio/webm"></audio>
     <p>Transcription: {{ bid.voice_transcription }}</p>
 {% else %}
@@ -34,7 +32,9 @@
 <p>Requirement Status: <strong>{{ req.status }}</strong></p>
 <p>Bid Status: <strong>{{ bid.status }}</strong></p>
 
-{% if current_user == req.user %} {# Changed from req.poster to req.user as per model usage #}
+{# Check if current_user is the poster (owner) of the requirement #}
+{# REVERTED: Using req.poster as per models.py backref #}
+{% if current_user == req.poster %}
     {% if bid.status == 'pending' %}
     <form method="POST">
         <button type="submit" name="action" value="confirm_agreement">Accept This Bid</button>
@@ -46,16 +46,17 @@
     <p>This work is now **In Progress** with {{ bid.bidder.username }}.</p>
     {% endif %}
 
-{% elif current_user == bid.bidder %} {# The person who made the bid #}
+{# Check if current_user is the person who made the bid #}
+{% elif current_user == bid.bidder %}
     {% if bid.status == 'pending' %}
-    <p>Waiting for {{ req.user.username }} to review your bid.</p> {# Changed from req.poster to req.user #}
+    <p>Waiting for {{ req.poster.username }} to review your bid.</p> {# REVERTED: Using req.poster #}
     {% elif bid.status == 'accepted_by_poster' %}
     <form method="POST">
-        <p>Your bid has been accepted by {{ req.user.username }}.</p> {# Changed from req.poster to req.user #}
+        <p>Your bid has been accepted by {{ req.poster.username }}.</p> {# REVERTED: Using req.poster #}
         <button type="submit" name="action" value="confirm_agreement">Confirm Agreement & Start Work</button>
     </form>
     {% elif req.status == 'in_progress' %}
-    <p>Agreement confirmed! Work is now **In Progress** with {{ req.user.username }}.</p> {# Changed from req.poster to req.user #}
+    <p>Agreement confirmed! Work is now **In Progress** with {{ req.poster.username }}.</p> {# REVERTED: Using req.poster #}
     {% endif %}
 
 {% endif %}

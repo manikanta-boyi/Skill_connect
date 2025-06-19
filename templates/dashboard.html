@@ -1,13 +1,33 @@
-{% extends 'base.html' %} {# FIXED: Added closing quote and space #}
+{% extends 'base.html' %}
 {% block content %}
 <h2>Dashboard</h2>
 <p>Welcome {{current_user.username}}</p>
 
 {% if current_user.role == 'user' %}
 <p><a href="{{ url_for('main.post_requirement') }}">Post a Requirement</a></p>
-<p><a href="{{ url_for('main.requirements') }}">My Posted Requirements</a></p> {# Clarified text #}
-{% else %} {# Implies current_user.role == 'skilled' #}
-<p><a href="{{ url_for('main.requirements') }}">Available Requirements (for Skilled Persons)</a></p> {# Clarified text #}
-{% endif %} {# FIXED: Missing endif #}
+<p><a href="{{ url_for('main.requirements') }}">My Posted Requirements</a></p>
+{% elif current_user.role == 'skilled' %} {# Use elif for clarity #}
+<p><a href="{{ url_for('main.requirements') }}">Browse Available Requirements (for Skilled Persons)</a></p>
+
+{# NEW SECTION FOR SKILLED USER'S BIDS #}
+<h3>My Bids</h3>
+{% if user_bids %}
+    <ul>
+        {% for bid_item in user_bids %}
+        <li>
+            <strong>For Requirement:</strong> <a href="{{ url_for('main.view_bid_details', req_id=bid_item.requirement.id, bid_id=bid_item.id) }}">{{ bid_item.requirement.title }}</a><br>
+            Price: ${{ bid_item.price }} - Status: <strong>{{ bid_item.status | capitalize }}</strong>
+            {% if bid_item.status == 'accepted_by_poster' %}
+                <br><span style="color: green; font-weight: bold;">Action Needed: Poster accepted your bid! Please review and confirm.</span>
+            {% endif %}
+            <br><a href="{{ url_for('main.view_bid_details', req_id=bid_item.requirement.id, bid_id=bid_item.id) }}">View Bid Details</a>
+        </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>You haven't placed any bids yet.</p>
+{% endif %}
+
+{% endif %} {# This endif closes the initial if/elif block for current_user.role #}
 
 {% endblock %}

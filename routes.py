@@ -98,7 +98,15 @@ def logout():
 @main.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    user_bids = None # Initialize to None
+    if current_user.role == 'skilled':
+        # Fetch bids made by the current skilled user
+        user_bids = Bid.query.filter_by(user_id=current_user.id).all()
+        # Optionally, you can add sorting or filtering here if you want
+        # e.g., user_bids = Bid.query.filter_by(user_id=current_user.id).order_by(Bid.status.desc()).all()
+
+    # Pass user_bids to the template, it will be None if the user is not skilled
+    return render_template('dashboard.html', user_bids=user_bids)
 
 
 @main.route('/requirement',methods=['GET','POST'])
@@ -242,7 +250,8 @@ def bid(req_id):
 
                     # --- CRUCIAL CHANGE HERE: Store relative path for DB ---
                     voice_file_path_db = os.path.join(os.path.basename(upload_folder), filename)
-                    voice_file_path_db = voice_file_path_for_db.replace(os.path.sep, '/')
+                    # FIX: This line had a typo. Corrected 'voice_file_path_for_db' to 'voice_file_path_db'
+                    voice_file_path_db = voice_file_path_db.replace(os.path.sep, '/')
                     print(f"Path stored in DB: {voice_file_path_db}")
 
                     voice_transcription = transcribe_audio(full_file_path) # Pass full path to transcription
@@ -289,13 +298,15 @@ def view_bid_details(req_id, bid_id):
     req = Requirements.query.get_or_404(req_id)
     bid = Bid.query.get_or_404(bid_id)
 
-    # Ensure this bid belongs to this requirement
     if bid.requirement_id != req.id:
         flash('Bid does not belong to this requirement.', 'danger')
         return redirect(url_for('main.dashboard'))
 
-    # Only the requirement poster or the bidder can view/confirm this page
-    if current_user.id != req.user_id and current_user.id != bid.bidder_id: # Use IDs for comparison
+    # FIX: Changed bid.bidder_id to bid.user_id because Bid model stores the foreign key as user_id
+    # Also, simplified the logic for checking authorization.
+    # The current user must either be the poster of the requirement (req.poster.id)
+    # OR the bidder themselves (bid.user_id).
+    if not (current_user.id == req.poster.id or current_user.id == bid.user_id):
         flash('Unauthorized to view these bid details.', 'warning')
         return redirect(url_for('main.dashboard'))
 
@@ -303,13 +314,18 @@ def view_bid_details(req_id, bid_id):
         action = request.form.get('action')
 
         if action == 'confirm_agreement':
-            if current_user.id == req.user_id: # Poster confirms
-                bid.status = 'accepted_by_poster'
-                flash('You have accepted this bid. Waiting for bidder to confirm the agreement.', 'success')
-            elif current_user.id == bid.bidder_id: # Bidder confirms
+            # Check if the current user is the poster of the requirement
+            if current_user.id == req.poster.id:
+                if bid.status == 'pending': # Ensure poster can only accept pending bids
+                    bid.status = 'accepted_by_poster'
+                    flash('You have accepted this bid. Waiting for bidder to confirm the agreement.', 'success')
+                else:
+                    flash('Bid is not in a pending state to be accepted.', 'warning')
+            # Check if the current user is the bidder
+            elif current_user.id == bid.user_id:
                 if bid.status == 'accepted_by_poster':
                     bid.status = 'agreed'
-                    req.status = 'in_progress' # Update requirement status
+                    req.status = 'in_progress' # Mark the requirement as in progress
                     flash('Agreement confirmed! Work is now in progress.', 'success')
                 else:
                     flash('Requirement poster has not yet accepted this bid.', 'warning')
@@ -317,13 +333,16 @@ def view_bid_details(req_id, bid_id):
                 flash('You are not authorized to confirm this agreement.', 'danger')
 
             db.session.commit()
-            return redirect(url_for('main.dashboard')) # Redirect to a relevant page after action
+            return redirect(url_for('main.dashboard')) # Redirect to dashboard after action
 
-        elif action == 'reject_bid' and current_user.id == req.user_id: # Only poster can reject
-            bid.status = 'rejected'
-            db.session.commit()
-            flash('Bid has been rejected.', 'info')
-            return redirect(url_for('main.view_bids', req_id=req.id))
-
+        elif action == 'reject_bid' and current_user.id == req.poster.id:
+            # Ensure only the poster can reject and the bid is pending
+            if bid.status == 'pending':
+                bid.status = 'rejected'
+                db.session.commit()
+                flash('Bid has been rejected.', 'info')
+                return redirect(url_for('main.view_bids', req_id=req.id))
+            else:
+                flash('Bid cannot be rejected from its current status.', 'warning')
 
     return render_template('confirm_agreement.html', req=req, bid=bid)
