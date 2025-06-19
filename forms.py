@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField,PasswordField,SubmitField,SelectField,FloatField,TextAreaField
+from wtforms import StringField,PasswordField,SubmitField,SelectField,FloatField,TextAreaField, HiddenField # Added HiddenField
 from wtforms.validators import DataRequired,Email,EqualTo
 
 
@@ -21,12 +21,13 @@ class LoginForm(FlaskForm):
 class RequirementForm(FlaskForm):
     title = StringField('Title',validators=[DataRequired()])
     description = TextAreaField("description",validators=[DataRequired()])
-    skill_nedded = StringField('Skill Needed',validators=[DataRequired()])
+    skill_needed = StringField('Skill Needed',validators=[DataRequired()]) # FIXED TYPO from skill_nedded
     location = StringField('Location',validators=[DataRequired()])
+    voice_recording = HiddenField() # New: for base64 audio data
     submit = SubmitField('Submit')
 
 class BidForm(FlaskForm):
-    price  = FloatField('Price',validators=[DataRequired()])
-    comment = TextAreaField('Coment')
+    price = FloatField('Price',validators=[DataRequired()])
+    comment = TextAreaField('Comment') # FIXED TYPO from coment
+    voice_recording = HiddenField() # New: for base64 audio data
     submit = SubmitField('Submit')
-    

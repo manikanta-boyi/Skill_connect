@@ -1,9 +1,24 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
 <h2>Bids for: {{ req.title }}</h2>
-<ul>
-  {% for bid in bids %}
-    <li>{{ bid.bidder.username }} - ${{ bid.price }} - {{ bid.comment }}</li>
-  {% endfor %}
-</ul>
+{% if bids %}
+    <ul>
+        {% for bid_item in bids %}
+        <li>
+            Price: ${{ bid_item.price }} - Comment: {{ bid_item.comment }} - By: {{ bid_item.bidder.username }}
+            {% if bid_item.voice_file_path %}
+                <a href="#" onclick="document.getElementById('bid-audio-{{ bid_item.id }}').play(); return false;">Play Bid Voice</a>
+                <audio id="bid-audio-{{ bid_item.id }}" controls style="display:none;"
+                       {# REMOVED: .split('static/', 1)[1] #}
+                       src="{{ url_for('static', filename=bid_item.voice_file_path) }}" type="audio/webm">
+                </audio>
+            {% endif %}
+            <a href="{{ url_for('main.view_bid_details', req_id=req.id, bid_id=bid_item.id) }}">View Details & Confirm</a>
+        </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No bids yet for this requirement.</p>
+{% endif %}
+<p><a href="{{ url_for('main.requirements') }}">Back to My Requirements</a></p>
 {% endblock %}

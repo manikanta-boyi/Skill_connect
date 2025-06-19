@@ -1,16 +1,24 @@
-{%extends 'base.html'%}
-{%block content%}
+{% extends 'base.html' %}
+{% block content %}
 <h2>Requirements</h2>
 <ul>
-    {%for req in reqs%}
+    {% for req in reqs %}
     <li>
-        <strong>{{req.title}}</strong>-{{req.skill_needed}}-{{req.location}}
+        <strong>{{ req.title }}</strong> - {{ req.skill_needed }} - {{ req.location }}
+        {% if req.voice_file_path %}
+            <a href="#" onclick="document.getElementById('audio-{{ req.id }}').play(); return false;">Play Voice</a>
+            <audio id="audio-{{ req.id }}" controls style="display:none;"
+                   {# REMOVED: .split('static/', 1)[1] #}
+                   src="{{ url_for('static', filename=req.voice_file_path) }}" type="audio/webm">
+            </audio>
+        {% endif %}
+
         {% if current_user.role == 'skilled' %}
-        <a href="{{ url_for('main.bid', req_id=req.id) }}">Bid</a>
-        {%else%}
-        <a href="{{ url_for('main.view_bids', req_id=req.id) }}">View Bids</a>
-        {%endif%}
+        <a href="{{ url_for('main.bid', req_id=req.id) }}">Bid on this Requirement</a>
+        {% else %} {# User who posted the requirement #}
+        <a href="{{ url_for('main.view_bids', req_id=req.id) }}">View Bids ({{ req.bids|length }})</a>
+        {% endif %}
     </li>
-    {%endfor%}
+    {% endfor %}
 </ul>
-{%endblock%}
+{% endblock %}

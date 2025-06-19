@@ -1,12 +1,43 @@
-{%extends 'base.html%}
-{%block content%}
-<h2>Post requirement</h2>
+{% extends 'base.html' %}
+{% block content %}
+<h2>Post a Requirement</h2>
 <form method="POST">
-    {{form.hidden_tag()}}
-    {{form.title.label}}{{form.title()}}
-    {{form.description.label}}{{form.description()}}
-    {{ form.skill_needed.label }} {{ form.skill_needed() }} <br>
-    {{ form.location.label }} {{ form.location() }} <br>
-    {{ form.submit() }}
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.title.label }}<br>
+        {{ form.title(size=60) }}
+        {% for error in form.title.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
+    </p>
+    <p>
+        {{ form.description.label }}<br>
+        {{ form.description(rows=5, cols=60) }}
+        {% for error in form.description.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
+    </p>
+    <p>
+        {{ form.skill_needed.label }}<br>
+        {{ form.skill_needed(size=60) }}
+        {% for error in form.skill_needed.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
+    </p>
+    <p>
+        {{ form.location.label }}<br>
+        {{ form.location(size=60) }}
+        {% for error in form.location.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
+    </p>
+
+    <h3>Or Record Your Requirement:</h3>
+    <div id="voice-recorder">
+        {# UPDATED IDs to match voice_recorder.js #}
+        <button type="button" id="startRecordingBtn">Start Recording</button>
+        <button type="button" id="stopRecordingBtn" disabled>Stop Recording</button>
+        <audio id="playback" controls style="display:none;"></audio>
+        <p id="recordingStatus"></p>
+        {{ form.voice_recording() }} {# Hidden field for JS to populate #}
+    </div>
+
+    <p>{{ form.submit() }}</p>
 </form>
-{%endblock%}
+
+{# Link the JavaScript file #}
+<script src="{{ url_for('static', filename='js/voice_recorder.js') }}"></script>
+
+{% endblock %}

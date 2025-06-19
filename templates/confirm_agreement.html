@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Agreement Details</h2>
+
+<h3>Requirement: {{ req.title }}</h3>
+<p>Description: {{ req.description }}</p>
+<p>Skill Needed: {{ req.skill_needed }}</p>
+{% if req.voice_file_path %}
+    <h4>Requirement Voice:</h4>
+    {# REMOVED: .split('static/', 1)[1] #}
+    <audio controls src="{{ url_for('static', filename=req.voice_file_path) }}" type="audio/webm"></audio>
+    <p>Transcription: {{ req.voice_transcription }}</p>
+{% else %}
+    <p>No voice recording for this requirement.</p>
+{% endif %}
+
+<hr>
+
+<h3>Bid by {{ bid.bidder.username }}:</h3>
+<p>Price: ${{ bid.price }}</p>
+<p>Comment: {{ bid.comment }}</p>
+{% if bid.voice_file_path %}
+    <h4>Bidder's Voice Reply:</h4>
+    {# REMOVED: .split('static/', 1)[1] #}
+    <audio controls src="{{ url_for('static', filename=bid.voice_file_path) }}" type="audio/webm"></audio>
+    <p>Transcription: {{ bid.voice_transcription }}</p>
+{% else %}
+    <p>No voice recording for this bid.</p>
+{% endif %}
+
+<hr>
+
+<h3>Current Status:</h3>
+<p>Requirement Status: <strong>{{ req.status }}</strong></p>
+<p>Bid Status: <strong>{{ bid.status }}</strong></p>
+
+{% if current_user == req.user %} {# Changed from req.poster to req.user as per model usage #}
+    {% if bid.status == 'pending' %}
+    <form method="POST">
+        <button type="submit" name="action" value="confirm_agreement">Accept This Bid</button>
+        <button type="submit" name="action" value="reject_bid">Reject This Bid</button>
+    </form>
+    {% elif bid.status == 'accepted_by_poster' %}
+    <p>You have accepted this bid. Waiting for {{ bid.bidder.username }} to confirm agreement.</p>
+    {% elif req.status == 'in_progress' %}
+    <p>This work is now **In Progress** with {{ bid.bidder.username }}.</p>
+    {% endif %}
+
+{% elif current_user == bid.bidder %} {# The person who made the bid #}
+    {% if bid.status == 'pending' %}
+    <p>Waiting for {{ req.user.username }} to review your bid.</p> {# Changed from req.poster to req.user #}
+    {% elif bid.status == 'accepted_by_poster' %}
+    <form method="POST">
+        <p>Your bid has been accepted by {{ req.user.username }}.</p> {# Changed from req.poster to req.user #}
+        <button type="submit" name="action" value="confirm_agreement">Confirm Agreement & Start Work</button>
+    </form>
+    {% elif req.status == 'in_progress' %}
+    <p>Agreement confirmed! Work is now **In Progress** with {{ req.user.username }}.</p> {# Changed from req.poster to req.user #}
+    {% endif %}
+
+{% endif %}
+
+<p><a href="{{ url_for('main.dashboard') }}">Back to Dashboard</a></p>
+{% endblock %}

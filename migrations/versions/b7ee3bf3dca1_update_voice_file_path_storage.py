@@ -1,8 +1,8 @@
-"""empty message
+"""Update voice_file_path storage
 
-Revision ID: ade174bcfe86
+Revision ID: b7ee3bf3dca1
 Revises: 
-Create Date: 2025-06-18 16:07:57.977194
+Create Date: 2025-06-19 15:02:46.168417
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'ade174bcfe86'
+revision = 'b7ee3bf3dca1'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,8 +23,8 @@ def upgrade():
     sa.Column('username', sa.String(length=100), nullable=False),
     sa.Column('email', sa.String(length=100), nullable=False),
     sa.Column('password', sa.String(length=100), nullable=False),
-    sa.Column('role', sa.String(length=50), nullable=True),
-    sa.Column('location', sa.String(length=100), nullable=True),
+    sa.Column('role', sa.String(length=50), nullable=False),
+    sa.Column('location', sa.String(length=100), nullable=False),
     sa.Column('skill', sa.String(length=100), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
@@ -34,8 +34,11 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=150), nullable=False),
     sa.Column('description', sa.Text(), nullable=False),
-    sa.Column('skill_neded', sa.String(length=100), nullable=True),
-    sa.Column('location', sa.String(length=100), nullable=True),
+    sa.Column('skill_needed', sa.String(length=100), nullable=True),
+    sa.Column('location', sa.String(length=100), nullable=False),
+    sa.Column('voice_file_path', sa.String(length=255), nullable=True),
+    sa.Column('voice_transcription', sa.Text(), nullable=True),
+    sa.Column('status', sa.String(length=50), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -43,7 +46,10 @@ def upgrade():
     op.create_table('bid',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('price', sa.Float(), nullable=False),
-    sa.Column('coment', sa.Text(), nullable=True),
+    sa.Column('comment', sa.Text(), nullable=True),
+    sa.Column('voice_file_path', sa.String(length=255), nullable=True),
+    sa.Column('voice_transcription', sa.Text(), nullable=True),
+    sa.Column('status', sa.String(length=50), nullable=False),
     sa.Column('requirement_id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['requirement_id'], ['requirements.id'], ),

@@ -7,6 +7,8 @@ from routes import main
 
 
 app = Flask(__name__)
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
 
 app.config['SECRET_KEY']= 'mysecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
@@ -16,6 +18,7 @@ app.config['MAIL_PORT']=587
 app.config['MAIL_USE_TLS']=True
 app.config['MAIL_USERNAME']= os.environ.get('EMAIL_USER')
 app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASS')
+app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'static', 'audio_uploads')
 
 
 

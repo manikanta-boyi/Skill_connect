@@ -1,10 +1,48 @@
-{%extends 'base.html'%}
-{%block content%}
-<h2>Bid for : {{req.title}}</h2>
+{% extends 'base.html' %}
+{% block content %}
+<h2>Bid on Requirement: {{ req.title }}</h2>
+<p>Description: {{ req.description }}</p>
+<p>Skill Needed: {{ req.skill_needed }}</p>
+<p>Location: {{ req.location }}</p>
+
+{% if req.voice_file_path %}
+    <h3>Original Requirement Voice:</h3>
+    {# Ensure this path correctly points to your audio file #}
+    {# Using .split('/')[-1] is generally safer to get just the filename #}
+    <audio controls>
+        <source src="{{ url_for('static', filename='audio_uploads/' + req.voice_file_path.split('/')[-1]) }}" type="audio/wav">
+        Your browser does not support the audio element.
+    </audio>
+    <p>Transcription: {{ req.voice_transcription }}</p>
+{% endif %}
+
 <form method="POST">
-    {{form.hidden_tag()}}
-    {{form.price.label}}{{form.price()}}
-    {{ form.comment.label }} {{ form.comment() }} <br>
-    {{ form.submit() }}
+    {{ form.hidden_tag() }}
+    <p>
+        {{ form.price.label }}<br>
+        {{ form.price(size=20) }}
+        {% for error in form.price.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
+    </p>
+    <p>
+        {{ form.comment.label }}<br>
+        {{ form.comment(rows=5, cols=60) }}
+        {% for error in form.comment.errors %}<span style="color: red;">{{ error }}</span>{% endfor %}
+    </p>
+
+    <h3>Record Your Bid Reply:</h3>
+    <div id="voice-recorder">
+        {# UPDATED IDs to match voice_recorder.js #}
+        <button type="button" id="startRecordingBtn">Start Recording</button>
+        <button type="button" id="stopRecordingBtn" disabled>Stop Recording</button>
+        <audio id="playback" controls style="display:none;"></audio>
+        <p id="recordingStatus"></p>
+        {{ form.voice_recording() }} {# Hidden field for JS to populate #}
+    </div>
+
+    <p>{{ form.submit() }}</p>
 </form>
-{%endblock%}
+
+{# Link the JavaScript file #}
+<script src="{{ url_for('static', filename='js/voice_recorder.js') }}"></script>
+
+{% endblock %}
