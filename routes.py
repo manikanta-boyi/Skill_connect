@@ -23,34 +23,51 @@ main =Blueprint('main',__name__)
 
 # Helper function for AI transcription
 def transcribe_audio(file_path):
-    client = speech.SpeechClient()
-
-    # Read the audio file
-    with io.open(file_path, "rb") as audio_file:
-        content = audio_file.read()
-    audio = speech.RecognitionAudio(content=content)
-
-    config = speech.RecognitionConfig(
-        # CRITICAL CHANGE: Use OGG_OPUS for webm from frontend
-        encoding=speech.RecognitionConfig.AudioEncoding.OGG_OPUS,
-        sample_rate_hertz=48000, # Ensure this matches what MediaRecorder provides (often 48000Hz default for webm)
-        language_code="en-US",
-    )
+    client = speech.SpeechClient() # Initializes client
 
     try:
-        operation = client.long_running_recognize(config=config, audio=audio)
-        print("Waiting for operation to complete...")
-        response = operation.result(timeout=300) # Increased timeout for larger files
-        
-        transcript = ""
-        for result in response.results:
-            transcript += result.alternatives[0].transcript
-        return transcript
+        with open(file_path, "rb") as audio_file:
+            content = audio_file.read()
 
-    except Exception as e:
-        print(f"Google Speech-to-Text API Error: {e}")
-        # Return a clear error message instead of re-raising
-        return f"Transcription Error: {e}"
+        audio = speech.RecognitionAudio(content=content)
+
+        # Ensure these match your recorded audio's actual properties
+        config = speech.RecognitionConfig(
+            encoding=speech.RecognitionConfig.AudioEncoding.OGG_OPUS, # Common for .webm from browser
+            sample_rate_hertz=48000, # Common for browser audio
+            language_code="en-US",
+            enable_automatic_punctuation=True,
+        )
+
+        print(f"Attempting Google Speech-to-Text API call for: {file_path}") # More specific log
+        operation = client.long_running_recognize(config=config, audio=audio)
+        print("Waiting for Google Speech-to-Text operation to complete...")
+
+        # Increased timeout to 120 seconds for larger files/slower networks
+        response = operation.result(timeout=120) 
+
+        transcription = ""
+        for result in response.results:
+            transcription += result.alternatives[0].transcript + " "
+
+        print(f"Transcription successful: {transcription.strip()}")
+        return transcription.strip()
+
+    except GoogleAPIError as e: # Catch Google API specific errors
+        print(f"Google Speech-to-Text API Specific Error: {e}")
+        # Check for specific error details
+        if "Quota" in str(e) or "quota" in str(e):
+            return "Transcription Error: API quota exceeded or billing not enabled."
+        elif "Permission" in str(e) or "permission" in str(e):
+            return "Transcription Error: Insufficient Google Cloud permissions for service account."
+        elif "invalid_argument" in str(e) or "Bad audio" in str(e):
+            return "Transcription Error: Invalid or malformed audio data."
+        else:
+            return f"Transcription Error: Google API Error - {e}"
+
+    except Exception as e: # Catch any other unexpected errors
+        print(f"General Transcription Error: {e}")
+        return f"Transcription Error: General Python Error - {e}"
 
 @main.route('/')
 def index():

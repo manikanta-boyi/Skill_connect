@@ -1,8 +1,8 @@
-"""Update voice_file_path storage
+"""re writed logic of transcripted function
 
-Revision ID: b7ee3bf3dca1
+Revision ID: b387d448232f
 Revises: 
-Create Date: 2025-06-19 15:02:46.168417
+Create Date: 2025-06-19 20:01:17.659001
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b7ee3bf3dca1'
+revision = 'b387d448232f'
 down_revision = None
 branch_labels = None
 depends_on = None
