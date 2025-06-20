@@ -5,6 +5,7 @@ from forms import RegistrationForm,LoginForm,RequirementForm,BidForm
 from flask_login import login_required,current_user,login_user,logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from google.cloud import speech_v1p1beta1 as speech # Or just speech if you prefer
+from google.api_core.exceptions import GoogleAPIError
 
 import base64
 import uuid
@@ -23,7 +24,7 @@ main =Blueprint('main',__name__)
 
 # Helper function for AI transcription
 def transcribe_audio(file_path):
-    client = speech.SpeechClient() # Initializes client
+    client = speech.SpeechClient()
 
     try:
         with open(file_path, "rb") as audio_file:
@@ -31,41 +32,46 @@ def transcribe_audio(file_path):
 
         audio = speech.RecognitionAudio(content=content)
 
-        # Ensure these match your recorded audio's actual properties
+        # **** MODIFIED CONFIG HERE ****
         config = speech.RecognitionConfig(
-            encoding=speech.RecognitionConfig.AudioEncoding.OGG_OPUS, # Common for .webm from browser
-            sample_rate_hertz=48000, # Common for browser audio
+            # REMOVED: encoding=speech.RecognitionConfig.AudioEncoding.OGG_OPUS,
+            # ADDED: encoding=speech.RecognitionConfig.AudioEncoding.AUTO_DETECT,
+            # This is the key change!
+            sample_rate_hertz=48000, # Still keep this if your browser consistently records at 48kHz
             language_code="en-US",
             enable_automatic_punctuation=True,
+            audio_channel_count=1, # Add this if not already present, often helps with browser recordings
+            # enable_word_time_offsets=True # Useful if you need word timings, but not necessary for basic transcription
         )
 
-        print(f"Attempting Google Speech-to-Text API call for: {file_path}") # More specific log
+        print(f"Attempting Google Speech-to-Text API call for: {file_path} with AUTO_DETECT encoding.") # Log change
         operation = client.long_running_recognize(config=config, audio=audio)
         print("Waiting for Google Speech-to-Text operation to complete...")
 
-        # Increased timeout to 120 seconds for larger files/slower networks
-        response = operation.result(timeout=120) 
+        response = operation.result(timeout=120)
 
         transcription = ""
         for result in response.results:
             transcription += result.alternatives[0].transcript + " "
 
-        print(f"Transcription successful: {transcription.strip()}")
-        return transcription.strip()
+        transcription = transcription.strip()
+        if not transcription: # Handle cases where transcription might still be empty (e.g., silence)
+            transcription = "No clear speech detected or transcription was empty."
+        print(f"Transcription successful: {transcription}") # Log change
+        return transcription
 
-    except GoogleAPIError as e: # Catch Google API specific errors
+    except GoogleAPIError as e:
         print(f"Google Speech-to-Text API Specific Error: {e}")
-        # Check for specific error details
         if "Quota" in str(e) or "quota" in str(e):
             return "Transcription Error: API quota exceeded or billing not enabled."
         elif "Permission" in str(e) or "permission" in str(e):
             return "Transcription Error: Insufficient Google Cloud permissions for service account."
         elif "invalid_argument" in str(e) or "Bad audio" in str(e):
-            return "Transcription Error: Invalid or malformed audio data."
+            return "Transcription Error: Invalid or malformed audio data. (Try checking the audio file directly for content)."
         else:
             return f"Transcription Error: Google API Error - {e}"
 
-    except Exception as e: # Catch any other unexpected errors
+    except Exception as e:
         print(f"General Transcription Error: {e}")
         return f"Transcription Error: General Python Error - {e}"
 
@@ -363,3 +369,42 @@ def view_bid_details(req_id, bid_id):
                 flash('Bid cannot be rejected from its current status.', 'warning')
 
     return render_template('confirm_agreement.html', req=req, bid=bid)
+
+@main.route("/requirement/<int:req_id>/complete_work", methods=['POST'])
+@login_required
+def complete_requirement_work(req_id):
+    """
+    Allows either the requirement poster or the skilled person
+    to mark an 'in_progress' work as 'completed'.
+    """
+    requirement = Requirements.query.get_or_404(req_id)
+    
+    # Find the bid that is 'agreed' (meaning it's the active work) for this requirement
+    agreed_bid = Bid.query.filter_by(requirement_id=req_id, status='agreed').first()
+
+    # If no agreed bid, or if the requirement is not in progress, prevent completion
+    if not agreed_bid or requirement.status != 'in_progress':
+        flash('Work is not currently in progress or no active agreement found.', 'warning')
+        return redirect(url_for('main.view_bid_details', req_id=req_id, bid_id=agreed_bid.id) if agreed_bid else url_for('main.dashboard'))
+
+    # FIX: Change comparison from object comparison to ID comparison
+    # current_user.id refers to the ID of the logged-in user.
+    # requirement.user_id is the foreign key on the requirement table pointing to the poster's ID.
+    # agreed_bid.user_id is the foreign key on the bid table pointing to the bidder's ID.
+    if not (current_user.id == requirement.user_id or current_user.id == agreed_bid.user_id):
+        flash('You do not have permission to complete this work.', 'danger')
+        return redirect(url_for('main.dashboard'))
+
+    # If all checks pass, update the statuses
+    if requirement.status == 'in_progress' and agreed_bid.status == 'agreed':
+        requirement.status = 'completed'
+        agreed_bid.status = 'work_completed'
+        db.session.commit()
+        flash('Work successfully marked as completed!', 'success')
+    else:
+        # This case should ideally be caught by the initial check, but as a safeguard
+        flash('Work cannot be marked as completed. Invalid status.', 'danger')
+
+    # Redirect back to the bid details page where the action was initiated
+    return redirect(url_for('main.view_bid_details', req_id=req_id, bid_id=agreed_bid.id))
+

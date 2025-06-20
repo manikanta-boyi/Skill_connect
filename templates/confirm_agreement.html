@@ -1,65 +1,113 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Agreement Details</h2>
+<div class="container mt-4">
+    <h2 class="mb-4">Agreement Details</h2>
 
-<h3>Requirement: {{ req.title }}</h3>
-<p>Description: {{ req.description }}</p>
-<p>Skill Needed: {{ req.skill_needed }}</p>
-{% if req.voice_file_path %}
-    <h4>Requirement Voice:</h4>
-    <audio controls src="{{ url_for('static', filename=req.voice_file_path) }}" type="audio/webm"></audio>
-    <p>Transcription: {{ req.voice_transcription }}</p>
-{% else %}
-    <p>No voice recording for this requirement.</p>
-{% endif %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3>Requirement: {{ req.title }}</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Description:</strong> {{ req.description }}</p>
+            <p><strong>Skill Needed:</strong> {{ req.skill_needed }}</p>
+            {% if req.voice_file_path %}
+                <h4 class="mt-3">Requirement Voice:</h4>
+                <audio controls src="{{ url_for('static', filename=req.voice_file_path) }}" type="audio/webm" class="w-100"></audio>
+                <p class="mt-2"><strong>Transcription:</strong> {{ req.voice_transcription }}</p>
+            {% else %}
+                <p>No voice recording for this requirement.</p>
+            {% endif %}
+        </div>
+    </div>
 
-<hr>
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h3>Bid by {{ bid.bidder.username }}:</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Price:</strong> ${{ bid.price }}</p>
+            <p><strong>Comment:</strong> {{ bid.comment }}</p>
+            {% if bid.voice_file_path %}
+                <h4 class="mt-3">Bidder's Voice Reply:</h4>
+                <audio controls src="{{ url_for('static', filename=bid.voice_file_path) }}" type="audio/webm" class="w-100"></audio>
+                <p class="mt-2"><strong>Transcription:</strong> {{ bid.voice_transcription }}</p>
+            {% else %}
+                <p>No voice recording for this bid.</p>
+            {% endif %}
+        </div>
+    </div>
 
-<h3>Bid by {{ bid.bidder.username }}:</h3>
-<p>Price: ${{ bid.price }}</p>
-<p>Comment: {{ bid.comment }}</p>
-{% if bid.voice_file_path %}
-    <h4>Bidder's Voice Reply:</h4>
-    <audio controls src="{{ url_for('static', filename=bid.voice_file_path) }}" type="audio/webm"></audio>
-    <p>Transcription: {{ bid.voice_transcription }}</p>
-{% else %}
-    <p>No voice recording for this bid.</p>
-{% endif %}
+    <hr class="my-4">
 
-<hr>
+    <h3 class="mb-3">Current Status:</h3>
+    <p>Requirement Status: <strong class="text-info">{{ req.status.replace('_', ' ').title() }}</strong></p>
+    <p>Bid Status: <strong class="text-info">{{ bid.status.replace('_', ' ').title() }}</strong></p>
 
-<h3>Current Status:</h3>
-<p>Requirement Status: <strong>{{ req.status }}</strong></p>
-<p>Bid Status: <strong>{{ bid.status }}</strong></p>
+    <div class="mt-4">
+        {# Centralized Status Logic for Actions and Messages #}
+        {% if req.status == 'open' and bid.status == 'pending' %}
+            <p class="lead">This bid is pending review.</p>
+            {% if current_user == req.poster %}
+                <form method="POST" class="d-inline-block me-2">
+                    <button type="submit" name="action" value="confirm_agreement" class="btn btn-success btn-lg">Accept This Bid</button>
+                </form>
+                <form method="POST" class="d-inline-block">
+                    <button type="submit" name="action" value="reject_bid" class="btn btn-danger btn-lg">Reject This Bid</button>
+                </form>
+            {% elif current_user == bid.bidder %}
+                <p class="text-muted">Waiting for {{ req.poster.username }} to review your bid.</p>
+            {% endif %}
 
-{# Check if current_user is the poster (owner) of the requirement #}
-{# REVERTED: Using req.poster as per models.py backref #}
-{% if current_user == req.poster %}
-    {% if bid.status == 'pending' %}
-    <form method="POST">
-        <button type="submit" name="action" value="confirm_agreement">Accept This Bid</button>
-        <button type="submit" name="action" value="reject_bid">Reject This Bid</button>
-    </form>
-    {% elif bid.status == 'accepted_by_poster' %}
-    <p>You have accepted this bid. Waiting for {{ bid.bidder.username }} to confirm agreement.</p>
-    {% elif req.status == 'in_progress' %}
-    <p>This work is now **In Progress** with {{ bid.bidder.username }}.</p>
-    {% endif %}
+        {% elif bid.status == 'accepted_by_poster' %}
+            <p class="lead">This bid has been accepted by the poster. Waiting for worker's agreement to start work.</p>
+            {% if current_user == bid.bidder %} {# Only show "Confirm Agreement" to the worker #}
+                <form action="{{ url_for('main.view_bid_details', req_id=req.id, bid_id=bid.id) }}" method="POST" class="mt-3">
+                    <button type="submit" name="action" value="confirm_agreement" class="btn btn-success btn-lg">Confirm Agreement & Start Work</button>
+                </form>
+            {% else %}
+                <p class="text-muted">Awaiting worker's confirmation to begin work.</p>
+            {% endif %}
 
-{# Check if current_user is the person who made the bid #}
-{% elif current_user == bid.bidder %}
-    {% if bid.status == 'pending' %}
-    <p>Waiting for {{ req.poster.username }} to review your bid.</p> {# REVERTED: Using req.poster #}
-    {% elif bid.status == 'accepted_by_poster' %}
-    <form method="POST">
-        <p>Your bid has been accepted by {{ req.poster.username }}.</p> {# REVERTED: Using req.poster #}
-        <button type="submit" name="action" value="confirm_agreement">Confirm Agreement & Start Work</button>
-    </form>
-    {% elif req.status == 'in_progress' %}
-    <p>Agreement confirmed! Work is now **In Progress** with {{ req.poster.username }}.</p> {# REVERTED: Using req.poster #}
-    {% endif %}
+        {% elif req.status == 'in_progress' %}
+            <p class="lead text-success">This work is now <strong>In Progress</strong> with <strong>{{ bid.bidder.username }}</strong>.</p>
 
-{% endif %}
+            {# --- Mark Work as Completed Option --- #}
+            <div class="mt-4">
+                {% if current_user == req.poster %} {# Show to the Requirement Poster #}
+                    <form action="{{ url_for('main.complete_requirement_work', req_id=req.id) }}" method="POST">
+                        <button type="submit" class="btn btn-primary btn-lg">Mark Work as Completed (by You)</button>
+                    </form>
+                    <small class="text-muted mt-2 d-block">Click this when you are satisfied with the completed work.</small>
+                {% elif current_user == bid.bidder %} {# Show to the Skilled Person (Worker) #}
+                    <form action="{{ url_for('main.complete_requirement_work', req_id=req.id) }}" method="POST">
+                        <button type="submit" class="btn btn-info btn-lg">Mark Work as Completed (by You)</button>
+                    </form>
+                    <small class="text-muted mt-2 d-block">Click this when you have finished the work.</small>
+                {% else %}
+                    <p class="text-muted">Work is in progress. Only the poster or worker can mark it as completed.</p>
+                {% endif %}
+            </div>
+            {# --- END Mark Work as Completed Section --- #}
 
-<p><a href="{{ url_for('main.dashboard') }}">Back to Dashboard</a></p>
+        {% elif req.status == 'completed' %}
+            <p class="lead text-success">This work has been **Completed**.</p>
+            <p class="text-muted">The work has been successfully finished and marked as completed.</p>
+            {# You might want to add a review/rating feature here later #}
+
+        {% elif bid.status == 'rejected' %}
+            <p class="lead text-danger">This bid has been rejected.</p>
+            {% if current_user == req.poster %}
+                <p class="text-muted">You rejected this bid.</p>
+            {% elif current_user == bid.bidder %}
+                <p class="text-muted">Your bid was rejected by {{ req.poster.username }}.</p>
+            {% endif %}
+
+        {% else %} {# Fallback for any other unexpected status combinations #}
+            <p class="lead text-warning">Current Requirement Status: {{ req.status.replace('_', ' ').title() }}</p>
+            <p class="lead text-warning">Current Bid Status: {{ bid.status.replace('_', ' ').title() }}</p>
+        {% endif %}
+    </div>
+
+    <p class="mt-4"><a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a></p>
+</div>
 {% endblock %}

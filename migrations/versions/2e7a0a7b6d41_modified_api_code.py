@@ -1,8 +1,8 @@
-"""re writed logic of transcripted function
+"""modified api code
 
-Revision ID: b387d448232f
+Revision ID: 2e7a0a7b6d41
 Revises: 
-Create Date: 2025-06-19 20:01:17.659001
+Create Date: 2025-06-20 09:59:27.691688
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b387d448232f'
+revision = '2e7a0a7b6d41'
 down_revision = None
 branch_labels = None
 depends_on = None
