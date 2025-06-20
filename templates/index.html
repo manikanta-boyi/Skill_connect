@@ -1,5 +1,18 @@
 {% extends "base.html" %}
+
+{# Set the page title for the browser tab #}
+{% block title %}Home{% endblock %}
+
 {% block content %}
-<h1>Welcome to SkillConnect</h1>
-<p>Connect with skilled people for your needs.</p>
+<div class="text-center my-5"> {# Center content and add vertical margin #}
+    <h1 class="display-4 fw-bold text-primary mb-3">Welcome to SkillConnect</h1> {# Larger, bolder heading with primary color #}
+    <p class="lead text-secondary">Connect with skilled people for your needs.</p> {# Lead paragraph for prominence #}
+    <hr class="my-4"> {# Horizontal rule for separation #}
+    <p>Find skilled professionals or offer your services, all in one place.</p>
+    {# Optional: Add some calls to action if desired #}
+    <div class="mt-4">
+        <a href="{{ url_for('main.register') }}" class="btn btn-primary btn-lg me-2">Join as a User</a>
+        <a href="{{ url_for('main.post_requirement') }}" class="btn btn-outline-secondary btn-lg">Post a Requirement</a>
+    </div>
+</div>
 {% endblock %}

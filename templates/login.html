@@ -1,12 +1,41 @@
-{%extends 'base.html'%}
-{%block content%}
-<h2>Login</h2>
-<form method="POST">
-    {{form.hidden_tag()}}
-    {{form.email.label}}{{form.email()}}
-    {{form.password.label}}{{form.password()}}
-    {{form.submit()}}
-</form>
+{% extends 'base.html' %}
 
+{# Set the page title for the browser tab #}
+{% block title %}Login{% endblock %}
 
-{%endblock%}
+{% block content %}
+<div class="form-container mx-auto p-4 bg-light border rounded shadow-sm"> {# Bootstrap classes for a card-like form container #}
+    <h2 class="section-title text-center mb-4">Login</h2> {# Centered heading, added bottom margin #}
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        
+        <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control", placeholder="Enter your email address") }}
+            {% if form.email.errors %}
+                {% for error in form.email.errors %}
+                    <div class="text-danger form-text">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control", placeholder="Enter your password") }}
+            {% if form.password.errors %}
+                {% for error in form.password.errors %}
+                    <div class="text-danger form-text">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="d-grid mt-4"> {# Use d-grid for a full-width button #}
+            {{ form.submit(class="btn btn-primary btn-lg") }} {# Styled submit button with large size #}
+        </div>
+    </form>
+
+    <div class="text-center mt-3"> {# Link for registration #}
+        <p>Don't have an account? <a href="{{ url_for('main.register') }}">Register here</a>.</p>
+    </div>
+</div>
+{% endblock %}

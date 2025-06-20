@@ -1,33 +1,65 @@
 {% extends 'base.html' %}
+
+{# Set the page title for the browser tab #}
+{% block title %}Dashboard{% endblock %}
+
 {% block content %}
-<h2>Dashboard</h2>
-<p>Welcome {{current_user.username}}</p>
+<div class="content-block p-4"> {# Container for overall page styling #}
+    <h2 class="section-title text-center mb-4">Dashboard</h2>
+    <p class="lead text-center mb-4">Welcome, <span class="text-primary fw-bold">{{ current_user.username }}</span>!</p>
 
-{% if current_user.role == 'user' %}
-<p><a href="{{ url_for('main.post_requirement') }}">Post a Requirement</a></p>
-<p><a href="{{ url_for('main.requirements') }}">My Posted Requirements</a></p>
-{% elif current_user.role == 'skilled' %} {# Use elif for clarity #}
-<p><a href="{{ url_for('main.requirements') }}">Browse Available Requirements (for Skilled Persons)</a></p>
+    {% if current_user.role == 'user' %}
+    <div class="d-grid gap-3 mb-5"> {# Grid for buttons #}
+        <a href="{{ url_for('main.post_requirement') }}" class="btn btn-primary btn-lg">Post a New Requirement</a>
+        <a href="{{ url_for('main.requirements') }}" class="btn btn-outline-secondary btn-lg">View My Posted Requirements</a>
+    </div>
 
-{# NEW SECTION FOR SKILLED USER'S BIDS #}
-<h3>My Bids</h3>
-{% if user_bids %}
-    <ul>
-        {% for bid_item in user_bids %}
-        <li>
-            <strong>For Requirement:</strong> <a href="{{ url_for('main.view_bid_details', req_id=bid_item.requirement.id, bid_id=bid_item.id) }}">{{ bid_item.requirement.title }}</a><br>
-            Price: ${{ bid_item.price }} - Status: <strong>{{ bid_item.status | capitalize }}</strong>
-            {% if bid_item.status == 'accepted_by_poster' %}
-                <br><span style="color: green; font-weight: bold;">Action Needed: Poster accepted your bid! Please review and confirm.</span>
-            {% endif %}
-            <br><a href="{{ url_for('main.view_bid_details', req_id=bid_item.requirement.id, bid_id=bid_item.id) }}">View Bid Details</a>
-        </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>You haven't placed any bids yet.</p>
-{% endif %}
+    {% elif current_user.role == 'skilled' %}
+    <div class="d-grid gap-3 mb-5"> {# Grid for buttons #}
+        <a href="{{ url_for('main.requirements') }}" class="btn btn-success btn-lg">Browse Available Requirements</a>
+    </div>
 
-{% endif %} {# This endif closes the initial if/elif block for current_user.role #}
+    <h3 class="section-title text-center mb-4 mt-5">My Bids</h3> {# Added top margin for separation #}
+    {% if user_bids %}
+        <ul class="list-group list-group-flush">
+            {% for bid_item in user_bids %}
+            <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 border rounded shadow-sm">
+                <div class="mb-2 mb-md-0 flex-grow-1">
+                    <h5 class="mb-1">For Requirement: <a href="{{ url_for('main.view_bid_details', req_id=bid_item.requirement.id, bid_id=bid_item.id) }}" class="text-decoration-none text-primary fw-bold">{{ bid_item.requirement.title }}</a></h5>
+                    <p class="mb-1">Price: <span class="text-success fw-bold">${{ bid_item.price }}</span></p>
+                    <p class="mb-0">Status: 
+                        {% if bid_item.status == 'accepted_by_poster' %}
+                            <span class="badge bg-success">Accepted by Poster</span>
+                        {% elif bid_item.status == 'confirmed_by_skilled' %}
+                            <span class="badge bg-info">Confirmed by You</span>
+                        {% elif bid_item.status == 'rejected_by_poster' %}
+                            <span class="badge bg-danger">Rejected by Poster</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ bid_item.status | replace('_', ' ') | capitalize }}</span>
+                        {% endif %}
+                    </p>
+                </div>
 
+                <div class="mt-2 mt-md-0 d-flex flex-column flex-sm-row"> {# Buttons for actions #}
+                    {% if bid_item.status == 'accepted_by_poster' %}
+                        <div class="alert alert-success p-2 me-sm-2 mb-2 mb-sm-0 fw-bold" role="alert">
+                            Action Needed: Poster accepted your bid!
+                        </div>
+                        <a href="{{ url_for('main.view_bid_details', req_id=bid_item.requirement.id, bid_id=bid_item.id) }}" class="btn btn-success btn-sm w-100">Review & Confirm</a>
+                    {% else %}
+                        <a href="{{ url_for('main.view_bid_details', req_id=bid_item.requirement.id, bid_id=bid_item.id) }}" class="btn btn-outline-primary btn-sm w-100">View Details</a>
+                    {% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            You haven't placed any bids yet.
+        </div>
+    {% endif %}
+
+    {% endif %} {# This endif closes the initial if/elif block for current_user.role #}
+
+</div>
 {% endblock %}

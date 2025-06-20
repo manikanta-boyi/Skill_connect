@@ -1,17 +1,90 @@
-{%extends 'base.html'%}
-{%block content%}
-<h2>Register</h2>
-<form method="POST">
-    {{form.hidden_tag()}}
-    {{form.username.label}}{{form.username}} <br>
-    {{ form.email.label }} {{ form.email() }} <br>
-    {{ form.password.label }} {{ form.password() }} <br>
-    {{ form.confirm_password.label }} {{ form.confirm_password() }} <br>
-    {{ form.role.label }} {{ form.role() }} <br>
-    {{ form.skill.label }} {{ form.skill() }} <br>
-    {{ form.location.label }} {{ form.location() }} <br>
-    {{ form.submit() }}
-</form>
+{% extends 'base.html' %}
 
+{# Set the page title for the browser tab #}
+{% block title %}Register{% endblock %}
 
-{%endblock%}
+{% block content %}
+<div class="form-container mx-auto p-4 bg-light border rounded shadow-sm"> {# Added Bootstrap classes for a nicer form container #}
+    <h2 class="section-title text-center mb-4">Register</h2> {# Centered heading, added bottom margin #}
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        
+        <div class="mb-3">
+            {{ form.username.label(class="form-label") }}
+            {{ form.username(class="form-control", placeholder="Choose a username") }}
+            {% if form.username.errors %}
+                {% for error in form.username.errors %}
+                    <div class="text-danger form-text">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control", placeholder="Enter your email address") }}
+            {% if form.email.errors %}
+                {% for error in form.email.errors %}
+                    <div class="text-danger form-text">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control", placeholder="Enter your password") }}
+            {% if form.password.errors %}
+                {% for error in form.password.errors %}
+                    <div class="text-danger form-text">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.confirm_password.label(class="form-label") }}
+            {{ form.confirm_password(class="form-control", placeholder="Confirm your password") }}
+            {% if form.confirm_password.errors %}
+                {% for error in form.confirm_password.errors %}
+                    <div class="text-danger form-text">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.role.label(class="form-label") }}
+            {{ form.role(class="form-select") }} {# Using form-select for dropdown #}
+            {% if form.role.errors %}
+                {% for error in form.role.errors %}
+                    <div class="text-danger form-text">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.skill.label(class="form-label") }}
+            {{ form.skill(class="form-control", placeholder="e.g., Plumbing, Electrician (Optional)") }}
+            {% if form.skill.errors %}
+                {% for error in form.skill.errors %}
+                    <div class="text-danger form-text">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.location.label(class="form-label") }}
+            {{ form.location(class="form-control", placeholder="e.g., Kakinada, Hyderabad") }}
+            {% if form.location.errors %}
+                {% for error in form.location.errors %}
+                    <div class="text-danger form-text">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+            <small class="form-text text-muted">
+                Please enter your general location (e.g., city, town, or neighborhood).
+            </small>
+        </div>
+        
+        <div class="d-grid mt-4"> {# Use d-grid for a full-width button #}
+            {{ form.submit(class="btn btn-primary btn-lg") }} {# Styled submit button with large size #}
+        </div>
+    </form>
+</div>
+{% endblock %}

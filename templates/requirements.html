@@ -1,24 +1,63 @@
 {% extends 'base.html' %}
-{% block content %}
-<h2>Requirements</h2>
-<ul>
-    {% for req in reqs %}
-    <li>
-        <strong>{{ req.title }}</strong> - {{ req.skill_needed }} - {{ req.location }}
-        {% if req.voice_file_path %}
-            <a href="#" onclick="document.getElementById('audio-{{ req.id }}').play(); return false;">Play Voice</a>
-            <audio id="audio-{{ req.id }}" controls style="display:none;"
-                   {# REMOVED: .split('static/', 1)[1] #}
-                   src="{{ url_for('static', filename=req.voice_file_path) }}" type="audio/webm">
-            </audio>
-        {% endif %}
 
-        {% if current_user.role == 'skilled' %}
-        <a href="{{ url_for('main.bid', req_id=req.id) }}">Bid on this Requirement</a>
-        {% else %} {# User who posted the requirement #}
-        <a href="{{ url_for('main.view_bids', req_id=req.id) }}">View Bids ({{ req.bids|length }})</a>
-        {% endif %}
-    </li>
-    {% endfor %}
-</ul>
+{# Set the page title for the browser tab #}
+{% block title %}Requirements{% endblock %}
+
+{% block content %}
+<div class="content-block p-4"> {# Using content-block for overall page container #}
+    <h2 class="section-title text-center mb-4">Available Requirements</h2>
+
+    {% if reqs %}
+    <ul class="list-group list-group-flush"> {# Bootstrap list group #}
+        {% for req in reqs %}
+        <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 border rounded shadow-sm">
+            {# Requirement Details #}
+            <div class="mb-2 mb-md-0 me-md-3 flex-grow-1">
+                <h5 class="mb-1 text-primary">{{ req.title }}</h5>
+                <p class="mb-1 text-muted">Skill Needed: <span class="fw-bold">{{ req.skill_needed }}</span></p>
+                <p class="mb-1 text-secondary">Location: {{ req.location }}</p>
+            </div>
+
+            {# Voice Playback Section #}
+            {% if req.voice_file_path %}
+            <div class="me-md-3 mb-2 mb-md-0">
+                <button type="button" class="btn btn-sm btn-outline-info" 
+                        onclick="
+                            var audio = document.getElementById('audio-{{ req.id }}');
+                            if (audio.style.display === 'none') {
+                                audio.style.display = 'block';
+                                audio.play();
+                                this.textContent = 'Hide Voice';
+                            } else {
+                                audio.pause();
+                                audio.currentTime = 0;
+                                audio.style.display = 'none';
+                                this.textContent = 'Play Voice';
+                            }
+                            return false;
+                        ">Play Voice</button>
+                <audio id="audio-{{ req.id }}" controls class="audio-player mt-2" style="display:none;"
+                       src="{{ url_for('static', filename=req.voice_file_path) }}" type="audio/webm">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+            {% endif %}
+
+            {# Action Buttons #}
+            <div class="d-flex flex-column flex-sm-row mt-2 mt-md-0">
+                {% if current_user.role == 'skilled' %}
+                <a href="{{ url_for('main.bid', req_id=req.id) }}" class="btn btn-primary btn-sm w-100 mb-2 mb-sm-0 me-sm-2">Bid on this Requirement</a>
+                {% elif current_user.id == req.user_id %} {# Check if current_user is the poster #}
+                <a href="{{ url_for('main.view_bids', req_id=req.id) }}" class="btn btn-secondary btn-sm w-100">View Bids (<span class="badge bg-danger ms-1">{{ req.bids|length }}</span>)</a>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="alert alert-info text-center" role="alert">
+        No requirements posted yet. Check back later!
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
