@@ -4,15 +4,89 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<div class="text-center my-5"> {# Center content and add vertical margin #}
-    <h1 class="display-4 fw-bold text-primary mb-3">Welcome to SkillConnect</h1> {# Larger, bolder heading with primary color #}
-    <p class="lead text-secondary">Connect with skilled people for your needs.</p> {# Lead paragraph for prominence #}
-    <hr class="my-4"> {# Horizontal rule for separation #}
-    <p>Find skilled professionals or offer your services, all in one place.</p>
-    {# Optional: Add some calls to action if desired #}
+<div class="text-center my-5">
+    <h1 class="display-4 fw-bold text-primary mb-3">Welcome to SkillConnect</h1>
+    <p class="lead text-secondary">Connect with skilled people for your needs.</p>
+    <hr class="my-4">
+</div>
+
+<div id="appCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#appCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+        <button type="button" data-bs-target="#appCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+        <button type="button" data-bs-target="#appCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+        <button type="button" data-bs-target="#appCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+    </div>
+    <div class="carousel-inner rounded shadow-lg">
+        {# ... (your existing carousel items remain here, ensure .png extension is used) ... #}
+        <div class="carousel-item active">
+            <img src="{{ url_for('static', filename='img/slide1.png') }}" class="d-block w-100 carousel-img" alt="Connect with Professionals">
+            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-75 rounded p-3">
+                <h5 class="fw-bold">Find the Right Skill, Instantly</h5>
+                <p>SkillConnect brings skilled professionals and those in need of services together in one place.</p>
+            </div>
+        </div>
+        {# ... other carousel items ... #}
+        <div class="carousel-item">
+            <img src="{{ url_for('static', filename='img/slide2.png') }}" class="d-block w-100 carousel-img" alt="Post Requirements">
+            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-75 rounded p-3">
+                <h5 class="fw-bold">Post Your Needs, Your Way</h5>
+                <p>Easily describe your requirement with text or even a voice recording for ultimate clarity.</p>
+            </div>
+        </div>
+         <div class="carousel-item">
+            <img src="{{ url_for('static', filename='img/slide3.png') }}" class="d-block w-100 carousel-img" alt="Browse Bids">
+            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-75 rounded p-3">
+                <h5 class="fw-bold">Skilled Professionals: Find Work</h5>
+                <p>Browse available requirements, place competitive bids, and manage your projects from one dashboard.</p>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <img src="{{ url_for('static', filename='img/slide4.png') }}" class="d-block w-100 carousel-img" alt="Agreement Process">
+            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-75 rounded p-3">
+                <h5 class="fw-bold">Streamlined Agreement & Workflows</h5>
+                <p>Accept bids, confirm agreements, and mark work as complete with clear status tracking.</p>
+            </div>
+        </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#appCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#appCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<div class="text-center my-5">
+    <p class="lead text-secondary">Find skilled professionals or offer your services, all in one place.</p>
     <div class="mt-4">
         <a href="{{ url_for('main.register') }}" class="btn btn-primary btn-lg me-2">Join as a User</a>
         <a href="{{ url_for('main.post_requirement') }}" class="btn btn-outline-secondary btn-lg">Post a Requirement</a>
     </div>
 </div>
+
+<style>
+    .carousel-img {
+        /* Option A: Remove max-height and let it scale naturally (might be tall) */
+        /* max-height: auto; */ 
+        
+        /* Option B: Increase max-height significantly */
+        max-height: 600px; /* Try a larger value */
+        
+        /* Option C: Set a fixed height and let object-fit handle it */
+        /* height: 450px; */ /* Or your desired fixed height */
+        /* object-fit: cover; */ /* This is essential for fixed height */
+        
+        /* Always keep object-fit: cover if you want images to fill the space without stretching */
+        object-fit: cover; 
+    }
+    .carousel-caption {
+        background-color: rgba(0, 0, 0, 0.75);
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+</style>
+
 {% endblock %}
