@@ -12,12 +12,7 @@ import uuid
 import os
 import io
 
-# REMOVE or COMMENT OUT this global UPLOAD_FOLDER definition
-# if you are defining it in app.config as recommended.
-# If you keep it here, ensure it's still correct.
-# UPLOAD_FOLDER = 'static/audio_uploads'
-# if not os.path.exists(UPLOAD_FOLDER):
-#     os.makedirs(UPLOAD_FOLDER)
+
 
 
 main =Blueprint('main',__name__)
@@ -37,7 +32,7 @@ def transcribe_audio(file_path):
             # REMOVED: encoding=speech.RecognitionConfig.AudioEncoding.OGG_OPUS,
             # ADDED: encoding=speech.RecognitionConfig.AudioEncoding.AUTO_DETECT,
             # This is the key change!
-            sample_rate_hertz=48000, # Still keep this if your browser consistently records at 48kHz
+            sample_rate_hertz=48000, # Still keep this if  browser consistently records at 48kHz
             language_code="en-US",
             enable_automatic_punctuation=True,
             audio_channel_count=1, # Add this if not already present, often helps with browser recordings
@@ -121,7 +116,7 @@ def logout():
 @main.route('/dashboard')
 @login_required
 def dashboard():
-    user_bids = None # Initialize to None
+    user_bids = None
     if current_user.role == 'skilled':
         # Fetch bids made by the current skilled user
         user_bids = Bid.query.filter_by(user_id=current_user.id).all()
@@ -325,10 +320,7 @@ def view_bid_details(req_id, bid_id):
         flash('Bid does not belong to this requirement.', 'danger')
         return redirect(url_for('main.dashboard'))
 
-    # FIX: Changed bid.bidder_id to bid.user_id because Bid model stores the foreign key as user_id
-    # Also, simplified the logic for checking authorization.
-    # The current user must either be the poster of the requirement (req.poster.id)
-    # OR the bidder themselves (bid.user_id).
+
     if not (current_user.id == req.poster.id or current_user.id == bid.user_id):
         flash('Unauthorized to view these bid details.', 'warning')
         return redirect(url_for('main.dashboard'))
@@ -387,8 +379,8 @@ def complete_requirement_work(req_id):
         flash('Work is not currently in progress or no active agreement found.', 'warning')
         return redirect(url_for('main.view_bid_details', req_id=req_id, bid_id=agreed_bid.id) if agreed_bid else url_for('main.dashboard'))
 
-    # FIX: Change comparison from object comparison to ID comparison
-    # current_user.id refers to the ID of the logged-in user.
+   
+    
     # requirement.user_id is the foreign key on the requirement table pointing to the poster's ID.
     # agreed_bid.user_id is the foreign key on the bid table pointing to the bidder's ID.
     if not (current_user.id == requirement.user_id or current_user.id == agreed_bid.user_id):
